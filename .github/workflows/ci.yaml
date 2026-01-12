@@ -44,7 +44,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           # Her servis için kendi klasörüne gidip oradaki Dockerfile'ı okur
-          context: ./src/${{ matrix.service }}
+          context: ./src/${{ matrix.service }}${{ matrix.service == 'cartservice' && '/src' || '' }}
           file: ./src/${{ matrix.service }}/${{ matrix.service == 'cartservice' && 'src/Dockerfile' || 'Dockerfile' }}
           push: true
           # Etiketleme: Hem "latest" hem de o anki "commit id" basıyoruz
