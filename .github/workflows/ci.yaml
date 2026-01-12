@@ -45,6 +45,7 @@ jobs:
         with:
           # Her servis için kendi klasörüne gidip oradaki Dockerfile'ı okur
           context: ./src/${{ matrix.service }}
+          file: ./src/${{ matrix.service }}/${{ matrix.service == 'cartservice' && 'src/Dockerfile' || 'Dockerfile' }}
           push: true
           # Etiketleme: Hem "latest" hem de o anki "commit id" basıyoruz
           tags: |
