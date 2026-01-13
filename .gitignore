@@ -26,3 +26,16 @@ obj/
 pkg/
 release/wi-kubernetes-manifests.yaml
 vendor/
+# Terraform geçici dosyaları (ASLA GÖNDERME)
+.terraform/
+*.tfstate
+*.tfstate.backup
+.terraform.lock.hcl
+
+# Terraform değişken dosyaları (Şifre olabilir, GÖNDERME)
+*.tfvars
+*.auto.tfvars
+
+# Gizli anahtarlar vs.
+.env
+.DS_Store

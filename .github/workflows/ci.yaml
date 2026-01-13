@@ -1,53 +1,57 @@
-name: Build and Push to Docker Hub
+name: Build and Push to AWS ECR
 
 on:
   push:
-    branches: [ "main", "master" ]
-  workflow_dispatch: # İstediğin zaman elle tetiklemek için
+    branches: [ "main" ]
+
+env:
+  AWS_REGION: eu-west-1                   # Terraform ile aynı bölge olmalı
+  ECR_REPOSITORY_PREFIX: microservices-demo # Terraform'daki app_name
 
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
-    
     strategy:
-      fail-fast: false # Biri patlarsa diğerlerini durdurma, devam et
       matrix:
-        # src klasörü altındaki servis isimleri
-        service: [
-          adservice,
-          cartservice,
-          checkoutservice,
-          currencyservice,
-          emailservice,
-          frontend,
-          paymentservice,
-          productcatalogservice,
-          recommendationservice,
-          shippingservice,
-          loadgenerator  # Bunu da ekledim, Autoscaling testi yaparken trafik basmak için lazım olacak!
-        ]
+        # DİKKAT: Bu isimlerin hem 'src' klasöründeki isimlerle 
+        # hem de Terraform ile açtığın repo isimleriyle AYNI olması lazım.
+        service: 
+          - adservice
+          - cartservice
+          - checkoutservice
+          - currencyservice
+          - emailservice
+          - frontend
+          - loadgenerator
+          - paymentservice
+          - productcatalogservice
+          - recommendationservice
+          - shippingservice
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v3
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Login to Docker Hub
-        uses: docker/login-action@v3
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
         with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
 
       - name: Build and push
         uses: docker/build-push-action@v5
         with:
-          # Her servis için kendi klasörüne gidip oradaki Dockerfile'ı okur
+          # Cartservice için özel context ayarı (Aynı mantık devam ediyor)
           context: ./src/${{ matrix.service }}${{ matrix.service == 'cartservice' && '/src' || '' }}
+          # Cartservice için özel Dockerfile yolu
           file: ./src/${{ matrix.service }}/${{ matrix.service == 'cartservice' && 'src/Dockerfile' || 'Dockerfile' }}
           push: true
-          # Etiketleme: Hem "latest" hem de o anki "commit id" basıyoruz
+          # Burası artık AWS ECR adresini kullanıyor 👇
           tags: |
-            ${{ secrets.DOCKER_USERNAME }}/${{ matrix.service }}:latest
-            ${{ secrets.DOCKER_USERNAME }}/${{ matrix.service }}:${{ github.sha }}
+            ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY_PREFIX }}/${{ matrix.service }}:latest
+            ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY_PREFIX }}/${{ matrix.service }}:${{ github.sha }}
