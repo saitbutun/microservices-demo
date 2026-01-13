@@ -3,10 +3,15 @@ kind: Ingress
 metadata:
   name: frontend-ingress
   annotations:
-    nginx.ingress.kubernetes.io/ssl-redirect: "false" 
+    nginx.ingress.kubernetes.io/ssl-redirect: "true" 
     nginx.ingress.kubernetes.io/proxy-body-size: "10m"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
 spec:
   ingressClassName: nginx
+  tls: # 👇 BU BLOK YENİ EKLENDİ
+  - hosts:
+    - shop.saitclouddevops.xyz
+    secretName: shop-tls-secret # Sertifika bu isimle saklanacak
   rules:
   - host: shop.saitclouddevops.xyz  # 👈 Cloudflare'de ne yazdıysan (demo, shop, www) tam adresi buraya yaz
     http:
