@@ -7,6 +7,16 @@ module "eks" {
 
   cluster_endpoint_public_access  = true
 
+  node_security_group_additional_rules = {
+    ingress_vault_webhook = {
+      description                   = "Control Plane to Vault Agent Injector"
+      protocol                      = "tcp"
+      from_port                     = 8080
+      to_port                       = 8080
+      type                          = "ingress"
+      source_cluster_security_group = true
+    }
+  }
   vpc_id                   = module.vpc.vpc_id
   subnet_ids               = module.vpc.private_subnets
   control_plane_subnet_ids = module.vpc.private_subnets
