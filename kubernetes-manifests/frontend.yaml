@@ -27,6 +27,14 @@ spec:
       labels:
         app: frontend
       annotations:
+        vault.hashicorp.com/agent-inject: "true"
+        vault.hashicorp.com/role: "sockshop-role"
+        vault.hashicorp.com/agent-inject-secret-database-config.txt: "secret/data/sockshop/config"
+        # Bu kısım veriyi nasıl formatlayacağını söyler (KV v2 için):
+        vault.hashicorp.com/agent-inject-template-database-config.txt: |
+          {{- with secret "secret/data/sockshop/config" -}}
+          postgresql://user:{{ .Data.data.db-password }}@postgres:5432/db
+          {{- end -}}
         sidecar.istio.io/rewriteAppHTTPProbers: "true"
     spec:
       serviceAccountName: frontend

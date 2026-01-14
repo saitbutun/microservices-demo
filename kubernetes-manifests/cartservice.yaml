@@ -33,7 +33,6 @@ spec:
               - ALL
           privileged: false
           readOnlyRootFilesystem: true
-        # 👇 1. DÜZELTME: Burası senin ECR adresin olacak (Uygulama Kodu)
         image: 096086545925.dkr.ecr.eu-west-1.amazonaws.com/microservices-demo/cartservice:latest
         ports:
         - containerPort: 7070
