@@ -1,4 +1,6 @@
-FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:10.0.100-noble@sha256:c7445f141c04f1a6b454181bd098dcfa606c61ba0bd213d0a702489e5bd4cd71 AS builder
+FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:8.0-noble AS builder
+# NOT: Yukarıdaki versiyonu 10 yazmışsın ama .NET 10 henüz çıkmadı, muhtemelen 8 veya 9 kullanıyorsundur.
+# Eğer özel bir preview sürüm değilse burayı 8.0 veya 9.0 yapmalısın.
 ARG TARGETARCH
 WORKDIR /app
 COPY cartservice.csproj .
@@ -14,8 +16,10 @@ RUN dotnet publish cartservice.csproj \
     -c release \
     -o /cartservice
 
-# https://mcr.microsoft.com/product/dotnet/runtime-deps
-FROM mcr.microsoft.com/dotnet/runtime-deps:10.0.0-noble-chiseled@sha256:b857c8cb8d929183cfe4c6dd9994abba92a2639dd2dbaf06005379f815991604
+# DÜZELTME BURADA: "chiseled" ifadesini kaldırdık.
+# Artık içinde /bin/sh var, Vault scriptleri çalışacak.
+# Versiyon numarasını (10.0.0) kendi gerçek versiyonunla (örn: 8.0 veya 9.0) teyit et.
+FROM mcr.microsoft.com/dotnet/runtime-deps:8.0-noble
 
 WORKDIR /app
 COPY --from=builder /cartservice .
