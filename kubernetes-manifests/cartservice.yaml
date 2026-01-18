@@ -55,7 +55,7 @@ spec:
         # Böylece REDIS_ADDR environment variable'ı şifreli haliyle yüklenmiş oluyor.
         command: ["/bin/sh", "-c"]
         args:
-          - source /vault/secrets/redis-conf && /app/cartservice
+          - . /vault/secrets/redis-conf && /app/cartservice
         resources:
           requests:
             cpu: 200m
@@ -111,16 +111,22 @@ spec:
       labels:
         app: redis-cart
       annotations:
+        # Vault Agent Aktif
         vault.hashicorp.com/agent-inject: "true"
+        # Rol ismi (Cartservice ile aynı rolü kullanıyoruz)
         vault.hashicorp.com/role: "sockshop-role"
+        
+        # Şifreyi /vault/secrets/redis-sifre dosyasına yaz
         vault.hashicorp.com/agent-inject-secret-redis-sifre: "secret/data/sockshop/redis"
-        # Redis için şifreyi ham (raw) olarak dosyaya yazıyoruz
         vault.hashicorp.com/agent-inject-template-redis-sifre: |
           {{- with secret "secret/data/sockshop/redis" -}}
           {{ .Data.data.password }}
           {{- end -}}
     spec:
-      serviceAccountName: default # Veya cartservice ile aynı SA'yı kullanabilirsin, role bağlı.
+      # --- KRİTİK DEĞİŞİKLİK BURADA ---
+      # Vault'ta yetkili olan hesabı kullanmalıyız:
+      serviceAccountName: cartservice  
+      
       securityContext:
         fsGroup: 1000
         runAsGroup: 1000
@@ -138,12 +144,12 @@ spec:
         image: redis:alpine
         ports:
         - containerPort: 6379
-        # ÖNEMLİ DEĞİŞİKLİK:
-        # Redis'i varsayılan komutuyla değil, şifre isteyen komutla başlatıyoruz.
-        # Şifreyi Vault'un koyduğu dosyadan okuyup Redis'e veriyoruz.
+        
+        # Redis'i dosyadaki şifreyi okuyarak başlatıyoruz
         command: ["/bin/sh", "-c"]
         args:
           - redis-server --requirepass "$(cat /vault/secrets/redis-sifre)"
+          
         readinessProbe:
           periodSeconds: 5
           tcpSocket:
