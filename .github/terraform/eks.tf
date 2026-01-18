@@ -43,11 +43,11 @@ module "eks" {
   eks_managed_node_groups = {
     general = {
       min_size     = 1
-      max_size     = 5
-      desired_size = 2
+      max_size     = 3
+      desired_size = 1
 
       instance_types = ["t3.large"]
-      capacity_type  = "ON_DEMAND"
+      capacity_type  = "SPOT"
 
       tags = {
         "k8s.io/cluster-autoscaler/enabled" = "true"

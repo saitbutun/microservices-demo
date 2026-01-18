@@ -13,7 +13,7 @@ spec:
     - shop.saitclouddevops.xyz
     secretName: shop-tls-secret # Sertifika bu isimle saklanacak
   rules:
-  - host: shop.saitclouddevops.xyz  # 👈 Cloudflare'de ne yazdıysan (demo, shop, www) tam adresi buraya yaz
+  - host: shop.saitclouddevops.xyz 
     http:
       paths:
       - path: /
