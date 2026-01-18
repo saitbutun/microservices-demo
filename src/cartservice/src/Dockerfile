@@ -1,14 +1,13 @@
 # ---------------------------------------------------------
-# 1. Build Aşaması (SDK Kullanılır)
+# 1. Build Aşaması (Standart SDK - Debian tabanlı)
 # ---------------------------------------------------------
-FROM mcr.microsoft.com/dotnet/sdk:8.0-alpine AS builder
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS builder
 WORKDIR /app
 
-# Proje dosyasını kopyala ve bağımlılıkları çek
 COPY cartservice.csproj .
+# Debian tabanlı olduğu için restore işlemi burada hata vermez
 RUN dotnet restore cartservice.csproj
 
-# Tüm kodu kopyala ve derle
 COPY . .
 RUN dotnet publish cartservice.csproj \
     -c Release \
@@ -16,22 +15,18 @@ RUN dotnet publish cartservice.csproj \
     --no-restore
 
 # ---------------------------------------------------------
-# 2. Run Aşaması (Shell içeren Alpine Runtime Kullanılır)
+# 2. Run Aşaması (Standart Runtime - SHELL İÇERİR)
 # ---------------------------------------------------------
-FROM mcr.microsoft.com/dotnet/aspnet:8.0-alpine
+# 'alpine' veya 'chiseled' YAZMIYORUZ. Düz 8.0 kullanıyoruz.
+# Bunun içinde /bin/sh da var, /bin/bash de var. Vault bayılır buna.
+FROM mcr.microsoft.com/dotnet/aspnet:8.0
 WORKDIR /app
 
-# Derlenen dosyaları builder aşamasından al
 COPY --from=builder /app/publish .
 
-# Port ve Environment ayarları
 EXPOSE 7070
 ENV DOTNET_EnableDiagnostics=0 \
     ASPNETCORE_HTTP_PORTS=7070
 
-# Güvenlik için root olmayan kullanıcıya geç
-# (Alpine imajlarında genelde 'app' kullanıcısı olmazsa default kalabilir veya oluşturulabilir, 
-# ama sock-shop genelde root olarak başlar, şimdilik bu satırı sildim ki permission hatası alma)
-# USER 1000 
-
+# Root yetkisiyle çalışsın ki Vault dosyaları rahat okusun (Demo ortamı)
 ENTRYPOINT ["./cartservice"]
