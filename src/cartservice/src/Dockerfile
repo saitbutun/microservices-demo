@@ -19,7 +19,7 @@ RUN dotnet publish cartservice.csproj \
 # DÜZELTME BURADA: "chiseled" ifadesini kaldırdık.
 # Artık içinde /bin/sh var, Vault scriptleri çalışacak.
 # Versiyon numarasını (10.0.0) kendi gerçek versiyonunla (örn: 8.0 veya 9.0) teyit et.
-FROM mcr.microsoft.com/dotnet/runtime-deps:10.0.0-noble-chiseled@sha256:b857c8cb8d929183cfe4c6dd9994abba92a2639dd2dbaf06005379f815991604
+FROM mcr.microsoft.com/dotnet/runtime-deps:10.0.0-noble
 WORKDIR /app
 COPY --from=builder /cartservice .
 EXPOSE 7070
