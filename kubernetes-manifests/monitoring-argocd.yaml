@@ -6,24 +6,21 @@ metadata:
 spec:
   project: default
   source:
-    # Prometheus Topluluğunun resmi Helm Chart adresi
+    # official prometheus repo
     repoURL: https://prometheus-community.github.io/helm-charts
     chart: kube-prometheus-stack
-    # Kararlı bir sürüm belirtmek iyi pratiktir (veya en son sürüm için bunu silebilirsin)
     targetRevision: 61.3.2 
     helm:
-      # İstersen values.yaml override işlemlerini buraya yazabilirsin
       values: |
         grafana:
           adminPassword: "admin" # Demo için sabit şifre (Prod'da böyle yapma!)
   destination:
     server: https://kubernetes.default.svc
-    # ArgoCD bu namespace'i otomatik oluşturacak
     namespace: monitoring
   syncPolicy:
     automated:
       prune: true
       selfHeal: true
     syncOptions:
-      - CreateNamespace=true # Namespace yoksa oluştur
+      - CreateNamespace=true # if namespace doesnt exist, create
       - ServerSideApply=true
