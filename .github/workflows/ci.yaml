@@ -3,7 +3,7 @@ name: Build and Push to AWS ECR
 on:
   push:
     branches: [ "main" ]
-  workflow_dispatch:        # İşte sihirli komut bu!
+  workflow_dispatch:       
     inputs:
       reason:
         description: 'Neden çalıştırıyorsun?'
@@ -11,16 +11,15 @@ on:
         default: 'Manuel test'  
 
 env:
-  AWS_REGION: eu-west-1                   # Terraform ile aynı bölge olmalı
-  ECR_REPOSITORY_PREFIX: microservices-demo # Terraform'daki app_name
+  AWS_REGION: eu-west-1                   
+  ECR_REPOSITORY_PREFIX: microservices-demo 
 
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        # DİKKAT: Bu isimlerin hem 'src' klasöründeki isimlerle 
-        # hem de Terraform ile açtığın repo isimleriyle AYNI olması lazım.
+      
         service: 
           - adservice
           - cartservice
@@ -52,12 +51,9 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v5
         with:
-          # Cartservice için özel context ayarı (Aynı mantık devam ediyor)
           context: ./src/${{ matrix.service }}${{ matrix.service == 'cartservice' && '/src' || '' }}
-          # Cartservice için özel Dockerfile yolu
           file: ./src/${{ matrix.service }}/${{ matrix.service == 'cartservice' && 'src/Dockerfile' || 'Dockerfile' }}
           push: true
-          # Burası artık AWS ECR adresini kullanıyor 👇
           tags: |
             ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY_PREFIX }}/${{ matrix.service }}:latest
             ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY_PREFIX }}/${{ matrix.service }}:${{ github.sha }}
