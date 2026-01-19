@@ -1,5 +1,5 @@
 # -------------------
-# 1. Cart Service (Müşteri/Client)
+# 1. Cart Service 
 # -------------------
 apiVersion: apps/v1
 kind: Deployment
@@ -16,22 +16,19 @@ spec:
       labels:
         app: cartservice
       annotations:
-        # Vault Agent Aktifleştirme
+        # Vault Agent activating
         vault.hashicorp.com/agent-inject: "true"
         vault.hashicorp.com/role: "sockshop-role"
         
-        # Secret'ı çekiyoruz
+        # secret
         vault.hashicorp.com/agent-inject-secret-redis-conf: "secret/data/sockshop/redis"
         
-        # TEMPLATE: Burada zekice bir iş yapıyoruz.
-        # Şifreyi sadece okumuyoruz, Redis bağlantı stringini (Connection String) oluşturuyoruz.
-        # Ve bunu bir ortam değişkeni (export) olarak dosyaya yazıyoruz.
         vault.hashicorp.com/agent-inject-template-redis-conf: |
           {{- with secret "secret/data/sockshop/redis" -}}
           export REDIS_ADDR='redis-cart:6379,password={{ .Data.data.password }},abortConnect=false'
           {{- end -}}
     spec:
-      serviceAccountName: cartservice # DİKKAT: Vault Rolünde bu SA'ya izin verdiğinden emin ol!
+      serviceAccountName: cartservice # warning: You must allow this SA in Vault Role
       terminationGracePeriodSeconds: 5
       securityContext:
         fsGroup: 1000
@@ -50,9 +47,7 @@ spec:
         image: 096086545925.dkr.ecr.eu-west-1.amazonaws.com/microservices-demo/cartservice
         ports:
         - containerPort: 7070
-        # ÖNEMLİ DEĞİŞİKLİK:
-        # Uygulama başlamadan önce Vault'un oluşturduğu dosyayı "source" ediyoruz.
-        # Böylece REDIS_ADDR environment variable'ı şifreli haliyle yüklenmiş oluyor.
+        
         command: ["/bin/sh", "-c"]
         args:
           - . /vault/secrets/redis-conf && /app/cartservice
@@ -111,20 +106,18 @@ spec:
       labels:
         app: redis-cart
       annotations:
-        # Vault Agent Aktif
+        # Vault Agent activate
         vault.hashicorp.com/agent-inject: "true"
-        # Rol ismi (Cartservice ile aynı rolü kullanıyoruz)
         vault.hashicorp.com/role: "sockshop-role"
         
-        # Şifreyi /vault/secrets/redis-sifre dosyasına yaz
+        # Write the password to /vault/secrets/redis-password file
         vault.hashicorp.com/agent-inject-secret-redis-sifre: "secret/data/sockshop/redis"
         vault.hashicorp.com/agent-inject-template-redis-sifre: |
           {{- with secret "secret/data/sockshop/redis" -}}
           {{ .Data.data.password }}
           {{- end -}}
     spec:
-      # --- KRİTİK DEĞİŞİKLİK BURADA ---
-      # Vault'ta yetkili olan hesabı kullanmalıyız:
+   
       serviceAccountName: cartservice  
       
       securityContext:
@@ -145,7 +138,7 @@ spec:
         ports:
         - containerPort: 6379
         
-        # Redis'i dosyadaki şifreyi okuyarak başlatıyoruz
+        #  We start Redis by reading the password in the file
         command: ["/bin/sh", "-c"]
         args:
           - redis-server --requirepass "$(cat /vault/secrets/redis-sifre)"
