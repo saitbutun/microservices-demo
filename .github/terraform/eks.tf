@@ -33,7 +33,6 @@ module "eks" {
     vpc-cni = {
       most_recent = true
     }
-    # 👇 BURASI DEĞİŞTİ: Artık yetki rolünü (IRSA) kullanıyor
     aws-ebs-csi-driver = {
       most_recent              = true
       service_account_role_arn = module.ebs_csi_irsa_role.iam_role_arn
@@ -64,7 +63,6 @@ module "eks" {
   }
 }
 
-# 👇 BURASI KOMPLE YENİ EKLENDİ: EBS Sürücüsü için Kimlik Kartı (IAM Rolü)
 module "ebs_csi_irsa_role" {
   source = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
   version = "~> 5.0"
