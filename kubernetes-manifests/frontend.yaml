@@ -30,7 +30,6 @@ spec:
         vault.hashicorp.com/agent-inject: "true"
         vault.hashicorp.com/role: "sockshop-role"
         vault.hashicorp.com/agent-inject-secret-database-config.txt: "secret/data/sockshop/config"
-        # Bu kısım veriyi nasıl formatlayacağını söyler (KV v2 için):
         vault.hashicorp.com/agent-inject-template-database-config.txt: |
           {{- with secret "secret/data/sockshop/config" -}}
           postgresql://user:{{ .Data.data.db-password }}@postgres:5432/db
@@ -149,7 +148,7 @@ metadata:
   name: frontend
 ---
 apiVersion: autoscaling/v2
-kind: HorizontalPodAutoscaler
+kind: HorizontalPodAutoscaler # HPA for pod scaling
 metadata:
   name: frontend
 spec:
@@ -165,6 +164,6 @@ spec:
       name: cpu
       target:
         type: Utilization
-        averageUtilization: 50
+        averageUtilization: 50 #we can change this limit
 
   
