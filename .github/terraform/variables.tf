@@ -8,14 +8,14 @@ variable "services" {
   default     = [
     "adservice",
     "cartservice",
-    "checkoutservice",      # checkout -> checkoutservice oldu
-    "currencyservice",      # currency -> currencyservice oldu
+    "checkoutservice",      
+    "currencyservice",      
     "emailservice",
     "frontend",
     "loadgenerator",
-    "paymentservice",       # payment -> paymentservice oldu
-    "productcatalogservice",# productcatalog -> productcatalogservice oldu
-    "recommendationservice",# recommendation -> recommendationservice oldu
-    "shippingservice"       # shipping -> shippingservice oldu
+    "paymentservice",       
+    "productcatalogservice",
+    "recommendationservice",
+    "shippingservice"       
   ]
 }
