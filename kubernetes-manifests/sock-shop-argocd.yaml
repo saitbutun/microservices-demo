@@ -6,19 +6,17 @@ metadata:
 spec:
   project: default
   source:
-    # SENİN REPO ADRESİN (Bunu kendi Github reponla değiştir!)
+    # my repo url
     repoURL: https://github.com/saitbutun/microservices-demo.git
-    # Manifestlerin olduğu klasör yolu
+    # Folder path containing manifests
     path: kubernetes-manifests 
-    # Branch (main veya master)
     targetRevision: main 
   destination:
     server: https://kubernetes.default.svc
-    # Uygulamanın kurulacağı namespace
     namespace: sock-shop 
   syncPolicy:
     automated:
-      prune: true      # Repodan silineni clusterdan da sil
-      selfHeal: true   # Elle değiştirileni otomatik düzelt (Drift Correction) 
+      prune: true      
+      selfHeal: true    
     syncOptions:
-      - CreateNamespace=true # sock-shop namespace'i yoksa oluştur
+      - CreateNamespace=true 
