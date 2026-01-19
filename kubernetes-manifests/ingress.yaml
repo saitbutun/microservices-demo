@@ -16,7 +16,7 @@ spec:
     - host: shop.saitclouddevops.xyz
       http:
         paths:
-          # 1️⃣ Challenge path en üstte olmalı
+          #  Challenge path must be priority
           - path: /.well-known/acme-challenge/
             pathType: Prefix
             backend:
@@ -24,7 +24,7 @@ spec:
                 name: cm-acme-http-solver-ms42c
                 port:
                   number: 8089
-          # 2️⃣ Diğer tüm trafik frontend'e gitsin
+          # All other traffic goes to the frontend
           - path: /
             pathType: Prefix
             backend:
