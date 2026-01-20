@@ -1,26 +1,37 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: monitoring-stack
+  name: monitoring
   namespace: argocd
 spec:
   project: default
+
   source:
-    # official prometheus repo
     repoURL: https://prometheus-community.github.io/helm-charts
     chart: kube-prometheus-stack
-    targetRevision: 61.3.2 
+    targetRevision: 57.0.2
     helm:
       values: |
         grafana:
-          adminPassword: "admin" # Demo için sabit şifre (Prod'da böyle yapma!)
+          enabled: true
+          adminPassword: admin
+          service:
+            type: ClusterIP
+
+        prometheus:
+          service:
+            type: ClusterIP
+          prometheusSpec:
+            retention: 7d
+
+        alertmanager:
+          enabled: true
+
   destination:
     server: https://kubernetes.default.svc
     namespace: monitoring
+
   syncPolicy:
     automated:
       prune: true
       selfHeal: true
-    syncOptions:
-      - CreateNamespace=true # if namespace doesnt exist, create
-      - ServerSideApply=true
