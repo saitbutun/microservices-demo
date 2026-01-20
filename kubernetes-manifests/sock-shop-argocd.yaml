@@ -1,22 +1,21 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: sock-shop
+  name: butik-shop
   namespace: argocd
 spec:
   project: default
+
   source:
-    # my repo url
     repoURL: https://github.com/saitbutun/microservices-demo.git
-    # Folder path containing manifests
-    path: kubernetes-manifests 
-    targetRevision: main 
+    targetRevision: main
+    path: kubernetes-manifests
+
   destination:
     server: https://kubernetes.default.svc
-    namespace: sock-shop 
+    namespace: default   # dummy
+
   syncPolicy:
     automated:
-      prune: true      
-      selfHeal: true    
-    syncOptions:
-      - CreateNamespace=true 
+      prune: false
+      selfHeal: false
