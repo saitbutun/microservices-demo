@@ -44,7 +44,7 @@ spec:
               - ALL
           privileged: false
           readOnlyRootFilesystem: true
-        image: 096086545925.dkr.ecr.eu-west-1.amazonaws.com/microservices-demo/cartservice
+        image: 116981762720.dkr.ecr.eu-west-1.amazonaws.com/microservices-demo/cartservice:latest
         ports:
         - containerPort: 7070
         
@@ -134,7 +134,7 @@ spec:
               - ALL
           privileged: false
           readOnlyRootFilesystem: true
-        image: redis:alpine
+        image: 116981762720.dkr.ecr.eu-west-1.amazonaws.com/microservices-demo/cartservice:latest
         ports:
         - containerPort: 6379
         

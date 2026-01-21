@@ -43,7 +43,7 @@ spec:
               - ALL
           privileged: false
           readOnlyRootFilesystem: true
-        image: 096086545925.dkr.ecr.eu-west-1.amazonaws.com/microservices-demo/recommendationservice:latest
+        image: 116981762720.dkr.ecr.eu-west-1.amazonaws.com/microservices-demo/recommendationservice:latest
         ports:
         - containerPort: 8080
         readinessProbe:
