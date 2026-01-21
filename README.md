@@ -8,6 +8,7 @@
 
 ## 📖 Overview
 This project demonstrates a complete **Platform Engineering** implementation for the "Sock Shop" microservices application. It simulates a real-world scenario where a legacy application is modernized using **AWS EKS, GitOps, and Infrastructure as Code (IaC)** principles.
+> ℹ️ **Note:** This project has been prepared as the solution for the **Kloia Platform Engineering Internship Technical Assessment**.
 
 **Key Achievements:**
 * **Zero-Touch Provisioning:** Infrastructure created 100% via Terraform.
