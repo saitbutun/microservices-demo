@@ -142,7 +142,7 @@ We will install Vault, initialize it, and configure Kubernetes authentication fo
 **Install Vault via Helm:**
 
 ```bash
-helm repo add hashicorp [https://helm.releases.hashicorp.com](https://helm.releases.hashicorp.com)
+helm repo add hashicorp https://helm.releases.hashicorp.com
 helm repo update
 kubectl create ns vault
 helm install vault hashicorp/vault --namespace vault
@@ -202,7 +202,7 @@ Now we deploy ArgoCD and let it handle the application deployment.
 ```bash
 # Install ArgoCD
 kubectl create namespace argocd
-kubectl apply -n argocd -f [https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml](https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml)
+kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
 
 # Deploy the Application (App of Apps Pattern)
 cd ~/microservices-demo/kubernetes-manifests
@@ -232,7 +232,7 @@ Finally, deploy the monitoring stack to visualize metrics.
 ```bash
 # Install Kube-Prometheus-Stack via Helm
 kubectl create namespace monitoring
-helm repo add prometheus-community [https://prometheus-community.github.io/helm-charts](https://prometheus-community.github.io/helm-charts)
+helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
 helm repo update
 helm install monitoring prometheus-community/kube-prometheus-stack -n monitoring
 
