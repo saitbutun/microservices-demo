@@ -21,8 +21,6 @@ This project demonstrates a complete **Platform Engineering** implementation for
 ## 🏗️ Architecture
 The solution follows an Event-Driven and GitOps-based architecture.
 
-![Architecture Diagram](./docs/architecture-diagram.png) 
-*(Note: Please upload your architecture diagram to a /docs folder and link it here)*
 
 ### 🛠️ Tech Stack & Tools
 
