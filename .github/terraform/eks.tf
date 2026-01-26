@@ -45,7 +45,8 @@ module "eks" {
       max_size     = 3
       desired_size = 2
 
-      instance_types = ["t3.large"]
+      instance_types = ["t4g.large"]
+      ami_type       = "AL2_ARM_64"
       capacity_type  = "SPOT"
 
       tags = {
