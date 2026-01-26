@@ -2,25 +2,29 @@ name: Build and Push to AWS ECR
 
 on:
   push:
-    branches: [ "main" ]
-  workflow_dispatch:       
+    branches: ["main"]
+  workflow_dispatch:
     inputs:
       reason:
-        description: 'Neden çalıştırıyorsun?'
+        description: "Neden çalıştırıyorsun?"
         required: false
-        default: 'Manuel test'  
+        default: "Manuel test"
 
 env:
-  AWS_REGION: eu-west-1                   
-  ECR_REPOSITORY_PREFIX: microservices-demo 
+  AWS_REGION: eu-west-1
+  ECR_REPOSITORY_PREFIX: microservices-demo
 
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
+
+    permissions:
+      id-token: write   # 🔥 OIDC
+      contents: read
+
     strategy:
       matrix:
-      
-        service: 
+        service:
           - adservice
           - cartservice
           - checkoutservice
@@ -35,13 +39,12 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - name: Configure AWS credentials
+      - name: Configure AWS credentials (OIDC)
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          role-to-assume: arn:aws:iam::<ACCOUNT_ID>:role/github-actions-ecr
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Login to Amazon ECR

@@ -3,7 +3,7 @@ module "eks" {
   version = "~> 20.0"
 
   cluster_name    = "microservices-demo-cluster"
-  cluster_version = "1.34"
+  cluster_version = "1.29"
 
   cluster_endpoint_public_access  = true
 

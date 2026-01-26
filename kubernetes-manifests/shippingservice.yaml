@@ -42,7 +42,7 @@ spec:
               - ALL
           privileged: false
           readOnlyRootFilesystem: true
-        image: 116981762720.dkr.ecr.eu-west-1.amazonaws.com/microservices-demo/shippingservice:latest
+        image: 096086545925.dkr.ecr.eu-west-1.amazonaws.com/microservices-demo/shippingservice:latest
         ports:
         - containerPort: 50051
         env:
