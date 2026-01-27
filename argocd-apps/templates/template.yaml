@@ -1,0 +1,43 @@
+{{- range .Values.applications }}
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: {{ .name }}
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: {{ .source.repoURL }}
+    targetRevision: {{ .source.targetRevision }}
+    
+    # EĞER GİT İSE (path varsa)
+    {{- if eq .source.type "git" }}
+    path: {{ .source.path }}
+    helm:
+      valueFiles:
+        - values.yaml
+    {{- end }}
+
+    # EĞER HELM REPO İSE (chart varsa)
+    {{- if eq .source.type "helm" }}
+    chart: {{ .source.chart }}
+    helm:
+      # Senin yapıştırdığın o uzun values bloğunu buraya basıyoruz
+      values: |
+        {{- .source.helmValues | nindent 8 }}
+    {{- end }}
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: {{ .namespace }}
+
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true # "monitoring" namespace'i yoksa yaratır
+{{- end }}

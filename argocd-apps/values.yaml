@@ -1,0 +1,33 @@
+applications:
+  
+  # 1. Senin Mikroservislerin (Git Kaynaklı)
+  - name: microservices-demo
+    namespace: default
+    source:
+      type: git
+      repoURL: https://github.com/saitbutun/microservices-demo.git
+      targetRevision: main
+      path: microservice-app/templates # Repodaki chart yolu
+
+  # 2. Monitoring Stack (Helm Repo Kaynaklı - Senin attığın YAML)
+  - name: monitoring
+    namespace: monitoring
+    source:
+      type: helm
+      repoURL: https://prometheus-community.github.io/helm-charts
+      chart: kube-prometheus-stack
+      targetRevision: 57.0.2
+      # Burası senin attığın o uzun "helm values" kısmı
+      helmValues: |
+        grafana:
+          enabled: true
+          adminPassword: admin
+          service:
+            type: ClusterIP
+        prometheus:
+          service:
+            type: ClusterIP
+          prometheusSpec:
+            retention: 7d
+        alertmanager:
+          enabled: true
