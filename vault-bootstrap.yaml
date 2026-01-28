@@ -4,16 +4,15 @@ metadata:
   name: vault-bootstrap
   namespace: vault
 spec:
-  backoffLimit: 3
+  backoffLimit: 0
   template:
     spec:
       serviceAccountName: vault
-      restartPolicy: OnFailure
+      restartPolicy: Never
       containers:
         - name: vault-bootstrap
           image: hashicorp/vault:1.15.0
           env:
-            # KRİTİK DEĞİŞİKLİK BURADA: Direkt pod adresine gidiyoruz
             - name: VAULT_ADDR
               value: "http://vault-0.vault-internal:8200"
           command:
@@ -23,71 +22,56 @@ spec:
               set -e
               apk add --no-cache jq curl
 
-              echo "⏳ Vault Pod'una (vault-0) bağlanılıyor..."
-              
-              # Vault cevap verene kadar bekle (200=Active, 501=Not Init, 503=Sealed)
-              until curl -s -o /dev/null --fail $VAULT_ADDR/v1/sys/health || [ $? -eq 22 ] || [ $? -eq 7 ]; do
-                 echo "Vault henüz socket açmadı, bekleniyor..."
-                 sleep 2
+              echo "⏳ Vault ($VAULT_ADDR) bekleniyor..."
+              while ! curl -s -o /dev/null $VAULT_ADDR/v1/sys/health; do
+                  sleep 2
               done
+              echo "✅ Vault bağlantısı sağlandı."
 
-              echo "✅ Vault'a erişildi."
-
-              # 1. INITIALIZE & LOGIN
               INIT_STATUS=$(curl -s $VAULT_ADDR/v1/sys/init | jq -r .initialized)
-              
+
               if [ "$INIT_STATUS" = "false" ]; then
-                 echo "🚀 Vault Initialize ediliyor..."
-                 vault operator init -key-shares=1 -key-threshold=1 -format=json > /tmp/init.json
-                 
-                 ROOT_TOKEN=$(jq -r .root_token /tmp/init.json)
-                 UNSEAL_KEY=$(jq -r .unseal_keys_b64[0] /tmp/init.json)
-                 
-                 echo "=================================================="
-                 echo "🔥 ROOT TOKEN: $ROOT_TOKEN"
-                 echo "🔥 UNSEAL KEY: $UNSEAL_KEY"
-                 echo "=================================================="
-                 
-                 vault operator unseal $UNSEAL_KEY
-                 vault login $ROOT_TOKEN
+                  echo "🚀 Vault Initialize ediliyor (AUTO-UNSEAL)..."
+                  
+                  # KMS olduğu için -recovery-shares kullanıyoruz
+                  vault operator init -recovery-shares=1 -recovery-threshold=1 -format=json > /tmp/init.json
+                  
+                  ROOT_TOKEN=$(jq -r .root_token /tmp/init.json)
+                  # DİKKAT: KMS modunda 'unseal_keys_b64' YOKTUR, 'recovery_keys_b64' VARDIR.
+                  RECOVERY_KEY=$(jq -r .recovery_keys_b64[0] /tmp/init.json)
+
+                  echo "=================================================="
+                  echo "🔥 ROOT TOKEN: $ROOT_TOKEN"
+                  echo "🔥 RECOVERY KEY: $RECOVERY_KEY"
+                  echo "⚠️  BU KEY SADECE KMS BOZULURSA LAZIM OLUR!"
+                  echo "=================================================="
+
+                  # Auto-Unseal olduğu için 'vault operator unseal' YAPMIYORUZ.
+                  # Vault kendisi açılacak. Sadece login oluyoruz.
+                  vault login $ROOT_TOKEN
               else
-                 echo "⚠️ Vault zaten init edilmiş. Root token yoksa script devam edemez."
-                 # Eğer unseal durumda değilse unseal etmeyi deneyelim (key elimizde yok ama logic olarak bulunsun)
-                 SEAL_STATUS=$(curl -s $VAULT_ADDR/v1/sys/health | jq -r .sealed)
-                 if [ "$SEAL_STATUS" = "true" ]; then
-                    echo "❌ Vault kilitli (Sealed)! Manuel unseal gerekli çünkü key bende yok."
-                    exit 1
-                 fi
-                 exit 0
+                  echo "⚠️ Vault zaten init edilmiş."
+                  exit 1
               fi
 
-              # 2. AYARLARI YAP
-              echo "📦 KV Secret Engine..."
+              # BURADAN SONRASI AYNI (Auth enable, Secrets put vb...)
+              echo "⚙️ Konfigürasyon..."
               vault secrets enable -path=secret kv-v2 || true
-              
-              echo "📝 Secret ekleniyor..."
-              vault kv put secret/sockshop/redis password="INITIALPASSWORD"
-
-              echo "🔑 Kubernetes Auth..."
               vault auth enable kubernetes || true
+              vault write auth/kubernetes/config kubernetes_host="https://kubernetes.default.svc:443"
+              
+              vault kv put secret/sockshop/redis password="RedisPassword123!"
+              vault kv put secret/sockshop/config db-password="PostgresPassword123!"
 
-              echo "⚙️ K8s Auth Config..."
-              vault write auth/kubernetes/config \
-                kubernetes_host="https://$KUBERNETES_PORT_443_TCP_ADDR:443"
-
-              echo "📜 Policy..."
-              cat <<EOF > /tmp/sockshop-policy.hcl
-              path "secret/data/sockshop/redis" {
-                capabilities = ["read"]
-              }
+              cat <<EOF > /tmp/policy.hcl
+              path "secret/data/sockshop/*" { capabilities = ["read"] }
               EOF
-              vault policy write sockshop-policy /tmp/sockshop-policy.hcl
+              vault policy write sockshop-policy /tmp/policy.hcl
 
-              echo "🔗 Role..."
               vault write auth/kubernetes/role/sockshop-role \
-                bound_service_account_names=cartservice \
+                bound_service_account_names=cartservice,frontend,default,redis-cart \
                 bound_service_account_namespaces=default \
                 policies=sockshop-policy \
-                ttl=1h
+                ttl=24h
 
-              echo "✅ BİTTİ KANKA!"
+              echo "✅ KURULUM TAMAM! Auto-Unseal aktif."
