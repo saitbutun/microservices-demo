@@ -31,9 +31,9 @@ spec:
         vault.hashicorp.com/role: "sockshop-role"
         vault.hashicorp.com/agent-inject-secret-database-config.txt: "secret/data/sockshop/config"
         vault.hashicorp.com/agent-inject-template-database-config.txt: |
-          {{- with secret "secret/data/sockshop/config" -}}
-          postgresql://user:{{ index .Data.data "db-password" }}@postgres:5432/db
-          {{- end -}}
+          {{`{{- with secret "secret/data/sockshop/config" -}}`}}
+          postgresql://user:{{`{{ index .Data.data "db-password" }}`}}@postgres:5432/db
+          {{`{{- end -}}`}}
         sidecar.istio.io/rewriteAppHTTPProbers: "true"
     spec:
       serviceAccountName: frontend
