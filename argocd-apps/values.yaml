@@ -7,7 +7,7 @@ applications:
       type: git
       repoURL: https://github.com/saitbutun/microservices-demo.git
       targetRevision: main
-      path: microservice-app/templates # Repodaki chart yolu
+      path: microservice-app/argocd-apps # Repodaki chart yolu
 
   # 2. Monitoring Stack (Helm Repo Kaynaklı - Senin attığın YAML)
   - name: monitoring
