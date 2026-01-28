@@ -113,9 +113,9 @@ spec:
         # Write the password to /vault/secrets/redis-password file
         vault.hashicorp.com/agent-inject-secret-redis-sifre: "secret/data/sockshop/redis"
         vault.hashicorp.com/agent-inject-template-redis-sifre: |
-          {{- with secret "secret/data/sockshop/redis" -}}
-          {{ .Data.data.password }}
-          {{- end -}}
+          {{ `{{- with secret "secret/data/sockshop/redis" -}}` }}
+          {{ `{{ .Data.data.password }}` }}
+          {{ `{{- end -}}` }}
     spec:
    
       serviceAccountName: cartservice  
