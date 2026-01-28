@@ -51,19 +51,25 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
         
-      - name: Scan image with Trivy
-        uses: aquasec/trivy-action@v1
-        with:
-          image-ref: ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY_PREFIX }}/${{ matrix.service }}:latest
-          format: 'table'
-          exit-code: '1'
-          severity: 'CRITICAL,HIGH'
-
-      - name: Build and push
+      - name: Build image (no push)
         uses: docker/build-push-action@v5
         with:
           context: ./src/${{ matrix.service }}${{ matrix.service == 'cartservice' && '/src' || '' }}
           file: ./src/${{ matrix.service }}/${{ matrix.service == 'cartservice' && 'src/Dockerfile' || 'Dockerfile' }}
+          push: false
+          tags: local/${{ matrix.service }}:scan
+          load: true
+      
+      - name: Scan image with Trivy
+        uses: aquasecurity/trivy-action@0.20.0
+        with:
+          image-ref: local/${{ matrix.service }}:scan
+          exit-code: 1
+          severity: CRITICAL,HIGH
+      
+      - name: Push image to ECR
+        uses: docker/build-push-action@v5
+        with:
           push: true
           tags: |
             ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY_PREFIX }}/${{ matrix.service }}:latest
