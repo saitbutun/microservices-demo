@@ -24,9 +24,9 @@ spec:
         vault.hashicorp.com/agent-inject-secret-redis-conf: "secret/data/sockshop/redis"
         
         vault.hashicorp.com/agent-inject-template-redis-conf: |
-          {{- with secret "secret/data/sockshop/redis" -}}
-          export REDIS_ADDR='redis-cart:6379,password={{ .Data.data.password }},abortConnect=false'
-          {{- end -}}
+          {{ `{{- with secret "secret/data/sockshop/redis" -}}` }}
+          export REDIS_ADDR='redis-cart:6379,password={{ `{{ .Data.data.password }}` }},abortConnect=false'
+          {{ `{{- end -}}` }}
     spec:
       serviceAccountName: cartservice # warning: You must allow this SA in Vault Role
       terminationGracePeriodSeconds: 5
