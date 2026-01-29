@@ -19,12 +19,17 @@ applications:
       targetRevision: 57.0.2
       # Burası senin attığın o uzun "helm values" kısmı
       helmValues: |
+        prometheusOperator:
+          enabled: true
+          crds:
+            enabled: true
         grafana:
           enabled: true
           adminPassword: admin
           service:
             type: ClusterIP
         prometheus:
+          enabled: true
           service:
             type: ClusterIP
           prometheusSpec:
