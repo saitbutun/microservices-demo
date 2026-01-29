@@ -29,6 +29,8 @@ spec:
           {{ `{{- end -}}` }}
         reloader.stakater.com/match: "true"
         reloader.stakater.com/auto: "true"  
+        vault.hashicorp.com/agent-inject-on-change: "true"
+
     spec:
       serviceAccountName: cartservice # warning: You must allow this SA in Vault Role
       terminationGracePeriodSeconds: 5
@@ -120,6 +122,9 @@ spec:
           {{ `{{- end -}}` }}
         reloader.stakater.com/match: "true"
         reloader.stakater.com/auto: "true"  
+                vault.hashicorp.com/agent-inject-on-change: "true"
+        vault.hashicorp.com/agent-inject-on-change: "true"
+
     spec:
    
       serviceAccountName: cartservice  

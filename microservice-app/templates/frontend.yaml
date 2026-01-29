@@ -28,6 +28,8 @@ spec:
         app: frontend
       annotations:
         vault.hashicorp.com/agent-inject: "true"
+        vault.hashicorp.com/agent-inject-on-change: "true"
+
         vault.hashicorp.com/role: "sockshop-role"
         vault.hashicorp.com/agent-inject-secret-database-config.txt: "secret/data/sockshop/config"
         vault.hashicorp.com/agent-inject-template-database-config.txt: |
