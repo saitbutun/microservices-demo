@@ -1,3 +1,4 @@
+applications:
   # 1. Senin Mikroservislerin (Git Kaynaklı)
   - name: microservices-demo
     namespace: default
