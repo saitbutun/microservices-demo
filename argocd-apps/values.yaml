@@ -34,5 +34,7 @@ applications:
             type: ClusterIP
           prometheusSpec:
             retention: 7d
+            replicas: 1
+            serviceMonitorSelectorNilUsesHelmValues: false
         alertmanager:
           enabled: true
