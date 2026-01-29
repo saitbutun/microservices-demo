@@ -1,5 +1,27 @@
 applications:
-  
+  - name: monitoring-crds
+    syncWave: "-1"
+    namespace: monitoring
+    source:
+      type: helm
+      repoURL: https://prometheus-community.github.io/helm-charts
+      chart: kube-prometheus-stack
+      targetRevision: 57.0.2
+      helmValues: |
+        crds:
+          enabled: true
+        prometheusOperator:
+          enabled: false
+        prometheus:
+          enabled: false
+        alertmanager:
+         enabled: false
+        grafana:
+          enabled: false
+
+
+
+
   # 1. Senin Mikroservislerin (Git Kaynaklı)
   - name: microservices-demo
     namespace: default
@@ -11,6 +33,7 @@ applications:
 
   # 2. Monitoring Stack (Helm Repo Kaynaklı - Senin attığın YAML)
   - name: monitoring
+    syncWave: "0"
     namespace: monitoring
     source:
       type: helm
@@ -22,7 +45,7 @@ applications:
         prometheusOperator:
           enabled: true
           crds:
-            enabled: true
+            enabled: false
         grafana:
           enabled: true
           adminPassword: admin
