@@ -1,6 +1,8 @@
 applications:
   - name: monitoring-crds
     syncWave: "-1"
+    serverSideApply: "true"
+    prune: "false"
     namespace: monitoring
     source:
       type: helm

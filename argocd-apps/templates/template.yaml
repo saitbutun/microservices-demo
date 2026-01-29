@@ -41,5 +41,8 @@ spec:
       prune: true
       selfHeal: true
     syncOptions:
-      - CreateNamespace=true # "monitoring" namespace'i yoksa yaratır
+     - CreateNamespace=true
+     - ServerSideApply={{ .serverSideApply | default "false" }}
+     - Prune={{ .prune | default "true" }}
+
 {{- end }}
