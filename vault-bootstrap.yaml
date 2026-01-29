@@ -75,3 +75,5 @@ spec:
                 ttl=24h
 
               echo "✅ KURULUM TAMAM! Auto-Unseal aktif."
+  ttlSecondsAfterFinished: 600
+          

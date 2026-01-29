@@ -27,6 +27,8 @@ spec:
           {{ `{{- with secret "secret/data/sockshop/redis" -}}` }}
           export REDIS_ADDR='redis-cart:6379,password={{ `{{ .Data.data.password }}` }},abortConnect=false'
           {{ `{{- end -}}` }}
+        reloader.stakater.com/match: "true"
+        reloader.stakater.com/auto: "true"  
     spec:
       serviceAccountName: cartservice # warning: You must allow this SA in Vault Role
       terminationGracePeriodSeconds: 5
@@ -116,6 +118,8 @@ spec:
           {{ `{{- with secret "secret/data/sockshop/redis" -}}` }}
           {{ `{{ .Data.data.password }}` }}
           {{ `{{- end -}}` }}
+        reloader.stakater.com/match: "true"
+        reloader.stakater.com/auto: "true"  
     spec:
    
       serviceAccountName: cartservice  
