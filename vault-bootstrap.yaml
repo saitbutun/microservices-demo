@@ -57,7 +57,7 @@ spec:
               vault write auth/kubernetes/config kubernetes_host="https://kubernetes.default.svc:443"
               
               vault kv put secret/sockshop/redis password="RedisPassword123!"
-              #vault kv put secret/sockshop/config db-password="PostgresPassword123!"
+              vault kv put secret/sockshop/config db-password="PostgresPassword123!"
 
               cat <<EOF > /tmp/policy.hcl
               path "secret/data/sockshop/*" { capabilities = ["read"] }
