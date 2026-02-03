@@ -22,16 +22,16 @@ spec:
               set -e
               apk add --no-cache jq curl
 
-              echo "⏳ Vault ($VAULT_ADDR) bekleniyor..."
+              echo " Vault ($VAULT_ADDR) bekleniyor..."
               while ! curl -s -o /dev/null $VAULT_ADDR/v1/sys/health; do
                   sleep 2
               done
-              echo "✅ Vault bağlantısı sağlandı."
+              echo "Vault bağlantısı sağlandı."
 
               INIT_STATUS=$(curl -s $VAULT_ADDR/v1/sys/init | jq -r .initialized)
 
               if [ "$INIT_STATUS" = "false" ]; then
-                  echo "🚀 Vault Initialize ediliyor (AUTO-UNSEAL)..."
+                  echo "Vault Initialize ediliyor (AUTO-UNSEAL)..."
                   
                   # KMS olduğu için -recovery-shares kullanıyoruz
                   vault operator init -recovery-shares=1 -recovery-threshold=1 -format=json > /tmp/init.json
@@ -41,27 +41,23 @@ spec:
                   RECOVERY_KEY=$(jq -r .recovery_keys_b64[0] /tmp/init.json)
 
                   echo "=================================================="
-                  echo "🔥 ROOT TOKEN: $ROOT_TOKEN"
-                  echo "🔥 RECOVERY KEY: $RECOVERY_KEY"
-                  echo "⚠️  BU KEY SADECE KMS BOZULURSA LAZIM OLUR!"
+                  echo "ROOT TOKEN: $ROOT_TOKEN"
+                  echo "RECOVERY KEY: $RECOVERY_KEY"
                   echo "=================================================="
 
-                  # Auto-Unseal olduğu için 'vault operator unseal' YAPMIYORUZ.
-                  # Vault kendisi açılacak. Sadece login oluyoruz.
                   vault login $ROOT_TOKEN
               else
-                  echo "⚠️ Vault zaten init edilmiş."
+                  echo " Vault zaten init edilmiş."
                   exit 1
               fi
 
-              # BURADAN SONRASI AYNI (Auth enable, Secrets put vb...)
-              echo "⚙️ Konfigürasyon..."
+              echo "Konfigürasyon..."
               vault secrets enable -path=secret kv-v2 || true
               vault auth enable kubernetes || true
               vault write auth/kubernetes/config kubernetes_host="https://kubernetes.default.svc:443"
               
               vault kv put secret/sockshop/redis password="RedisPassword123!"
-              vault kv put secret/sockshop/config db-password="PostgresPassword123!"
+              #vault kv put secret/sockshop/config db-password="PostgresPassword123!"
 
               cat <<EOF > /tmp/policy.hcl
               path "secret/data/sockshop/*" { capabilities = ["read"] }
@@ -74,6 +70,6 @@ spec:
                 policies=sockshop-policy \
                 ttl=24h
 
-              echo "✅ KURULUM TAMAM! Auto-Unseal aktif."
+              echo "KURULUM TAMAM! Auto-Unseal aktif."
   ttlSecondsAfterFinished: 600
           

@@ -19,10 +19,10 @@ for SERVICE in "${SERVICES[@]}"; do
   FILE="kubernetes-manifests/${SERVICE}.yaml"
   
   if [ -f "$FILE" ]; then
-    echo "🛠️  Düzeltiliyor: $SERVICE -> microservices-demo/$SERVICE"
+    echo "Düzeltiliyor: $SERVICE -> microservices-demo/$SERVICE"
     sed -i "s|image: .*|image: $ECR_URL/microservices-demo/$SERVICE:latest|g" $FILE
   else
-    echo "⚠️  Dosya bulunamadı: $FILE"
+    echo " Dosya bulunamadı: $FILE"
   fi
 done
 

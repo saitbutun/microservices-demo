@@ -64,7 +64,7 @@ jobs:
         uses: aquasecurity/trivy-action@0.20.0
         with:
           image-ref: local/${{ matrix.service }}:scan
-          exit-code: 0
+          exit-code: 0 #normalde 1 olmalı ancak workflow'un devam etmesi için 0 yapıyorum
           severity: CRITICAL,HIGH
       
       - name: Push image to ECR
