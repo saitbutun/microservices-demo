@@ -12,6 +12,7 @@ applications:
   - name: monitoring
     syncWave: "0"
     namespace: monitoring
+    serverSideApply: "true"
     source:
       type: helm
       repoURL: https://prometheus-community.github.io/helm-charts
@@ -19,10 +20,12 @@ applications:
       targetRevision: 57.0.2
       # Burası senin attığın o uzun "helm values" kısmı
       helmValues: |
+        crds:
+          enabled: true
         prometheusOperator:
           enabled: true
           crds:
-            enabled: false
+            enabled: true
         grafana:
           enabled: true
           adminPassword: admin
