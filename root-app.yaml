@@ -8,7 +8,7 @@ spec:
   source:
     repoURL: https://github.com/saitbutun/microservices-demo.git
     targetRevision: main
-    path: argocd-apps # YENİ oluşturduğumuz chart'ın yolu
+    path: argocd-apps 
   destination:
     server: https://kubernetes.default.svc
     namespace: argocd

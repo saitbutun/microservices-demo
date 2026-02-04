@@ -110,8 +110,8 @@ spec:
               vault auth enable kubernetes || true
               vault write auth/kubernetes/config kubernetes_host="https://kubernetes.default.svc:443"
               
-              vault kv put secret/sockshop/redis password="RedisPassword123!"
-              vault kv put secret/sockshop/config db-password="PostgresPassword123!"
+              vault kv put secret/sockshop/redis password="${redis_password_placeholder}"
+              vault kv put secret/sockshop/config db-password="${db_password_placeholder}"
 
               echo 'path "secret/data/sockshop/*" { capabilities = ["read"] }' > /tmp/sockshop-policy.hcl
               vault policy write sockshop-policy /tmp/sockshop-policy.hcl
@@ -122,5 +122,5 @@ spec:
                 policies=sockshop-policy \
                 ttl=24h
 
-              echo ">>> TÜM KURULUM BAŞARIYLA TAMAMLANDI! 🚀"
+              echo ">>> TÜM KURULUM BAŞARIYLA TAMAMLANDI!"
   ttlSecondsAfterFinished: 600

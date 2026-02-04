@@ -42,15 +42,12 @@ resource "aws_iam_policy" "ecr_push" {
       {
         Effect = "Allow"
          Action = [
-          # Auth
           "ecr:GetAuthorizationToken",
 
-          # Read (şu an eksik olanlar 👇)
           "ecr:BatchGetImage",
           "ecr:DescribeRepositories",
           "ecr:BatchCheckLayerAvailability",
 
-          # Write
           "ecr:InitiateLayerUpload",
           "ecr:UploadLayerPart",
           "ecr:CompleteLayerUpload",

@@ -1,4 +1,3 @@
-# 1. KMS Anahtarı (Doğru)
 resource "aws_kms_key" "vault" {
   description             = "Vault auto-unseal key"
   deletion_window_in_days = 7
@@ -10,7 +9,6 @@ resource "aws_kms_alias" "vault" {
   target_key_id = aws_kms_key.vault.key_id
 }
 
-# 2. IAM Policy (Doğru)
 resource "aws_iam_policy" "vault_kms" {
   name = "vault-kms-unseal"
 
@@ -28,7 +26,6 @@ resource "aws_iam_policy" "vault_kms" {
     }]
   })
 }
-# 2.1. EKSTRA POLICY: Vault'un AWS Auth Login Yapabilmesi İçin
 resource "aws_iam_policy" "vault_aws_auth" {
   name        = "vault-aws-auth-verification"
   description = "Allows Vault to verify IAM users for AWS Auth method"
@@ -49,7 +46,6 @@ resource "aws_iam_policy" "vault_aws_auth" {
   })
 }
 
-# 3. IAM Role (IRSA) - Modül Kullanımı
 module "vault_irsa_role" {
   source  = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
   version = "~> 5.0"
@@ -64,12 +60,10 @@ module "vault_irsa_role" {
   }
 }
 
-# 4. DÜZELTME: Policy'i Modülün oluşturduğu Role takıyoruz
 resource "aws_iam_role_policy_attachment" "vault_kms" {
-  role       = module.vault_irsa_role.iam_role_name  # <-- BURASI DÜZELDİ
+  role       = module.vault_irsa_role.iam_role_name
   policy_arn = aws_iam_policy.vault_kms.arn
 }
-# 4.1. DÜZELTME: AWS Auth Policy'sini de Role takıyoruz
 resource "aws_iam_role_policy_attachment" "vault_aws_auth" {
   role       = module.vault_irsa_role.iam_role_name
   policy_arn = aws_iam_policy.vault_aws_auth.arn
@@ -81,7 +75,6 @@ provider "helm" {
   }
 }
 
-# 5. Helm Chart Kurulumu
 resource "helm_release" "vault" {
   name       = "vault"
   namespace  = "vault"
@@ -94,11 +87,9 @@ resource "helm_release" "vault" {
   values = [
     <<EOF
 server:
-  # HA kapalı
   ha:
     enabled: false
 
-  # Standalone mod için konfigürasyonu buraya açıkça yazıyoruz
   standalone:
     enabled: true
     config: |
@@ -114,7 +105,6 @@ server:
         path = "/vault/data"
       }
 
-      # İŞTE EKSİK OLAN PARÇA BURASI 👇
       seal "awskms" {
         region     = "eu-west-1"
         kms_key_id = "${aws_kms_key.vault.key_id}"
@@ -127,7 +117,6 @@ server:
     annotations:
       eks.amazonaws.com/role-arn: "${module.vault_irsa_role.iam_role_arn}"
 
-  # Disk Ayarları (Veri kalıcılığı için)
   dataStorage:
     enabled: true
     size: 5Gi

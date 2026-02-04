@@ -1,14 +1,12 @@
 applications:
-  # 1. Senin Mikroservislerin (Git Kaynaklı)
   - name: microservices-demo
     namespace: default
     source:
       type: git
       repoURL: https://github.com/saitbutun/microservices-demo.git
       targetRevision: main
-      path: microservice-app # Repodaki chart yolu
+      path: microservice-app
 
-  # 2. Monitoring Stack (Helm Repo Kaynaklı - Senin attığın YAML)
   - name: monitoring
     syncWave: "0"
     namespace: monitoring
@@ -18,7 +16,6 @@ applications:
       repoURL: https://prometheus-community.github.io/helm-charts
       chart: kube-prometheus-stack
       targetRevision: 57.0.2
-      # Burası senin attığın o uzun "helm values" kısmı
       helmValues: |
         crds:
           enabled: true
