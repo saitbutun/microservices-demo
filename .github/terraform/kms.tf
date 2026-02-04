@@ -28,6 +28,26 @@ resource "aws_iam_policy" "vault_kms" {
     }]
   })
 }
+# 2.1. EKSTRA POLICY: Vault'un AWS Auth Login Yapabilmesi İçin
+resource "aws_iam_policy" "vault_aws_auth" {
+  name        = "vault-aws-auth-verification"
+  description = "Allows Vault to verify IAM users for AWS Auth method"
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect   = "Allow"
+        Action   = [
+          "iam:GetUser",
+          "iam:GetRole", 
+          "iam:GetInstanceProfile" 
+        ]
+        Resource = "*"
+      }
+    ]
+  })
+}
 
 # 3. IAM Role (IRSA) - Modül Kullanımı
 module "vault_irsa_role" {
@@ -48,6 +68,11 @@ module "vault_irsa_role" {
 resource "aws_iam_role_policy_attachment" "vault_kms" {
   role       = module.vault_irsa_role.iam_role_name  # <-- BURASI DÜZELDİ
   policy_arn = aws_iam_policy.vault_kms.arn
+}
+# 4.1. DÜZELTME: AWS Auth Policy'sini de Role takıyoruz
+resource "aws_iam_role_policy_attachment" "vault_aws_auth" {
+  role       = module.vault_irsa_role.iam_role_name
+  policy_arn = aws_iam_policy.vault_aws_auth.arn
 }
 
 provider "helm" {

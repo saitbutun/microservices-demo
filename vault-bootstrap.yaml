@@ -20,38 +20,92 @@ spec:
             - -c
             - |
               set -e
+              
+              echo ">>> Paketler yükleniyor..."
               apk add --no-cache jq curl
+              
+              echo ">>> Kubectl indiriliyor..."
+              curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+              chmod +x kubectl
+              mv kubectl /usr/local/bin/
 
-              echo " Vault ($VAULT_ADDR) bekleniyor..."
+              echo ">>> Vault ($VAULT_ADDR) bekleniyor..."
               while ! curl -s -o /dev/null $VAULT_ADDR/v1/sys/health; do
                   sleep 2
               done
-              echo "Vault bağlantısı sağlandı."
+              echo ">>> Vault bağlantısı sağlandı."
 
               INIT_STATUS=$(curl -s $VAULT_ADDR/v1/sys/init | jq -r .initialized)
 
               if [ "$INIT_STATUS" = "false" ]; then
-                  echo "Vault Initialize ediliyor (AUTO-UNSEAL)..."
+                  echo ">>> Vault Initialize ediliyor (AUTO-UNSEAL)..."
                   
-                  # KMS olduğu için -recovery-shares kullanıyoruz
+                  # Init yap
                   vault operator init -recovery-shares=1 -recovery-threshold=1 -format=json > /tmp/init.json
                   
                   ROOT_TOKEN=$(jq -r .root_token /tmp/init.json)
-                  # DİKKAT: KMS modunda 'unseal_keys_b64' YOKTUR, 'recovery_keys_b64' VARDIR.
                   RECOVERY_KEY=$(jq -r .recovery_keys_b64[0] /tmp/init.json)
-
-                  echo "=================================================="
-                  echo "ROOT TOKEN: $ROOT_TOKEN"
-                  echo "RECOVERY KEY: $RECOVERY_KEY"
-                  echo "=================================================="
-
+                  
+                  # ---------------------------------------------------------
+                  # GÜVENLİ BÖLGE: EOF kullanmadan güvenli dosya oluşturma
+                  # ---------------------------------------------------------
+                  echo ">>> Secret (vault-init-keys) dosyası hazırlanıyor..."
+                  
+                  # Log kapat
+                  set +x 
+                  
+                  # Dosyayı satır satır oluşturuyoruz (EOF hatası riskini sıfırlar)
+                  echo "apiVersion: v1" > /tmp/k8s_secret.yaml
+                  echo "kind: Secret" >> /tmp/k8s_secret.yaml
+                  echo "metadata:" >> /tmp/k8s_secret.yaml
+                  echo "  name: vault-init-keys" >> /tmp/k8s_secret.yaml
+                  echo "  namespace: vault" >> /tmp/k8s_secret.yaml
+                  echo "type: Opaque" >> /tmp/k8s_secret.yaml
+                  echo "stringData:" >> /tmp/k8s_secret.yaml
+                  echo "  root_token: \"$ROOT_TOKEN\"" >> /tmp/k8s_secret.yaml
+                  echo "  recovery_key: \"$RECOVERY_KEY\"" >> /tmp/k8s_secret.yaml
+                  
+                  # Oluşturulan dosyayı apply et
+                  kubectl apply -f /tmp/k8s_secret.yaml
+                  
+                  # Dosyayı sil
+                  rm /tmp/k8s_secret.yaml
+                  
+                  # Log aç
+                  set -x
+                  
+                  echo ">>> Secret başarıyla K8s'e gömüldü!"
+                  
+                  # Login ol
                   vault login $ROOT_TOKEN
               else
-                  echo " Vault zaten init edilmiş."
-                  exit 1
+                  echo ">>> Vault zaten init edilmiş. Çıkış yapılıyor."
+                  exit 0
               fi
 
-              echo "Konfigürasyon..."
+              # ---------------------------------------------------------
+              # KONFİGÜRASYON
+              # ---------------------------------------------------------
+              echo ">>> Konfigürasyon başlıyor..."
+
+              # Admin Policy
+              echo 'path "*" { capabilities = ["create", "read", "update", "delete", "list", "sudo"] }' > /tmp/admin-policy.hcl
+              vault policy write admin /tmp/admin-policy.hcl
+
+              # AWS Auth
+              echo ">>> AWS Auth aktif ediliyor..."
+              vault auth enable aws || true
+              
+              # Senin User'ın -> Admin
+              vault write auth/aws/role/devops-admin \
+                  auth_type=iam \
+                  bound_iam_principal_arn="arn:aws:iam::096086545925:user/sait.butun" \
+                  policies=admin \
+                  ttl=12h
+
+              echo ">>> AWS Auth Hazır."
+
+              # K8s Auth ve Sockshop
               vault secrets enable -path=secret kv-v2 || true
               vault auth enable kubernetes || true
               vault write auth/kubernetes/config kubernetes_host="https://kubernetes.default.svc:443"
@@ -59,17 +113,14 @@ spec:
               vault kv put secret/sockshop/redis password="RedisPassword123!"
               vault kv put secret/sockshop/config db-password="PostgresPassword123!"
 
-              cat <<EOF > /tmp/policy.hcl
-              path "secret/data/sockshop/*" { capabilities = ["read"] }
-              EOF
-              vault policy write sockshop-policy /tmp/policy.hcl
-
+              echo 'path "secret/data/sockshop/*" { capabilities = ["read"] }' > /tmp/sockshop-policy.hcl
+              vault policy write sockshop-policy /tmp/sockshop-policy.hcl
+              
               vault write auth/kubernetes/role/sockshop-role \
                 bound_service_account_names=cartservice,frontend,default,redis-cart \
                 bound_service_account_namespaces=default \
                 policies=sockshop-policy \
                 ttl=24h
 
-              echo "KURULUM TAMAM! Auto-Unseal aktif."
+              echo ">>> TÜM KURULUM BAŞARIYLA TAMAMLANDI! 🚀"
   ttlSecondsAfterFinished: 600
-          
