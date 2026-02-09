@@ -110,8 +110,8 @@ spec:
               vault auth enable kubernetes || true
               vault write auth/kubernetes/config kubernetes_host="https://kubernetes.default.svc:443"
               
-              vault kv put secret/sockshop/redis password="8ov7RZSDkJAS0f4E"
-              vault kv put secret/sockshop/config db-password="BxDmKflkKp4Zi5mT"
+              vault kv put secret/sockshop/redis password="cxqXdlqrllw2le32"
+              vault kv put secret/sockshop/config db-password="TUB4rfzbfQlhIuYc"
 
               echo 'path "secret/data/sockshop/*" { capabilities = ["read"] }' > /tmp/sockshop-policy.hcl
               vault policy write sockshop-policy /tmp/sockshop-policy.hcl
