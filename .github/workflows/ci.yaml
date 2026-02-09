@@ -1,8 +1,6 @@
 name: Build and Push to AWS ECR
 
 on:
-  push:
-    branches: ["main"]
   workflow_dispatch:
     inputs:
       reason:
@@ -17,12 +15,12 @@ env:
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
-
     permissions:
-      id-token: write   # 🔥 OIDC
+      id-token: write
       contents: read
 
     strategy:
+      fail-fast: true 
       matrix:
         service:
           - adservice
@@ -41,6 +39,14 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      # 🔥 ARM cross-build (Graviton) için gerekli
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      # 🔥 Multi-arch builder
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
       - name: Configure AWS credentials (OIDC)
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -50,29 +56,36 @@ jobs:
       - name: Login to Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
-        
-      - name: Build image (no push)
+
+      # 1. Aşama: Hızlıca AMD64 build alıp güvenlik taraması yap (Push yok)
+      - name: Build image (amd64 for scan)
         uses: docker/build-push-action@v5
         with:
           context: ./src/${{ matrix.service }}${{ matrix.service == 'cartservice' && '/src' || '' }}
           file: ./src/${{ matrix.service }}/${{ matrix.service == 'cartservice' && 'src/Dockerfile' || 'Dockerfile' }}
+          platforms: linux/amd64
           push: false
           tags: local/${{ matrix.service }}:scan
-          load: true
-      
+          load: true # Trivy'nin görmesi için Docker Daemon'a yükler
+
       - name: Scan image with Trivy
         uses: aquasecurity/trivy-action@0.20.0
         with:
           image-ref: local/${{ matrix.service }}:scan
-          exit-code: 0 #normalde 1 olmalı ancak workflow'un devam etmesi için 0 yapıyorum
+          format: 'table'
+          exit-code: 0 # 1 yaparsan kritik açıkta pipeline durur
+          ignore-unfixed: true
           severity: CRITICAL,HIGH
-      
-      - name: Push image to ECR
+
+      # 2. Aşama: Multi-arch (ARM64 + AMD64) Build ve ECR Push
+      - name: Build and Push multi-arch image
         uses: docker/build-push-action@v5
         with:
           context: ./src/${{ matrix.service }}${{ matrix.service == 'cartservice' && '/src' || '' }}
           file: ./src/${{ matrix.service }}/${{ matrix.service == 'cartservice' && 'src/Dockerfile' || 'Dockerfile' }}
+          platforms: linux/amd64,linux/arm64
           push: true
           tags: |
-           ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY_PREFIX }}/${{ matrix.service }}:latest
-           ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY_PREFIX }}/${{ matrix.service }}:${{ github.sha }}
+            ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY_PREFIX }}/${{ matrix.service }}:latest
+            ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY_PREFIX }}/${{ matrix.service }}:${{ github.sha }}
+          provenance: false

@@ -15,6 +15,7 @@
 *.iws
 *.pyc
 *.swp
+vault-bootstrap-generated.yaml
 *.tfstate*
 *.tfvars
 *~

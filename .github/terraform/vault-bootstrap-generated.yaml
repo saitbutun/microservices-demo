@@ -43,7 +43,8 @@ spec:
                   # Init yap
                   vault operator init -recovery-shares=1 -recovery-threshold=1 -format=json > /tmp/init.json
                   
-                  
+                  ROOT_TOKEN=$(jq -r .root_token /tmp/init.json)
+                  RECOVERY_KEY=$(jq -r .recovery_keys_b64[0] /tmp/init.json)
                   
                   # ---------------------------------------------------------
                   # GÜVENLİ BÖLGE: EOF kullanmadan güvenli dosya oluşturma
@@ -52,8 +53,7 @@ spec:
                   
                   # Log kapat
                   set +x 
-                  ROOT_TOKEN=$(jq -r .root_token /tmp/init.json)
-                  RECOVERY_KEY=$(jq -r .recovery_keys_b64[0] /tmp/init.json)
+                  
                   # Dosyayı satır satır oluşturuyoruz (EOF hatası riskini sıfırlar)
                   echo "apiVersion: v1" > /tmp/k8s_secret.yaml
                   echo "kind: Secret" >> /tmp/k8s_secret.yaml
@@ -110,8 +110,8 @@ spec:
               vault auth enable kubernetes || true
               vault write auth/kubernetes/config kubernetes_host="https://kubernetes.default.svc:443"
               
-              vault kv put secret/sockshop/redis password="ddVsG2Dt2llN7IB8"
-              vault kv put secret/sockshop/config db-password="UNWTHseI9zh6Z4gq"
+              vault kv put secret/sockshop/redis password="8ov7RZSDkJAS0f4E"
+              vault kv put secret/sockshop/config db-password="BxDmKflkKp4Zi5mT"
 
               echo 'path "secret/data/sockshop/*" { capabilities = ["read"] }' > /tmp/sockshop-policy.hcl
               vault policy write sockshop-policy /tmp/sockshop-policy.hcl
