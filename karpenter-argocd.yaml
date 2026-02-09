@@ -7,23 +7,21 @@ spec:
   project: default
   source:
     repoURL: 'public.ecr.aws/karpenter'
-    targetRevision: '1.0.6' # Stabil ve modern sürüm
+    targetRevision: '1.0.6'
     chart: karpenter
     helm:
       values: |
-        # Karpenter Controller Ayarları
         settings:
           clusterName: "microservices-demo-cluster"
-          interruptionQueue: "Karpenter-microservices-demo-cluster" # Terraform Output'tan geldi
+          interruptionQueue: "Karpenter-microservices-demo-cluster"
 
-        # Service Account (IRSA) - Controller'ın AWS yetkisi
         serviceAccount:
           create: true
           name: karpenter
           annotations:
-            eks.amazonaws.com/role-arn: "arn:aws:iam::096086545925:role/KarpenterController-20260209142159251000000013" # Terraform Output'tan geldi
+            # 👇 Yeni Terraform Çıktın (ARN)
+            eks.amazonaws.com/role-arn: "arn:aws:iam::096086545925:role/KarpenterController-20260209142159251000000013" 
 
-        # Controller'ın çalışacağı yer (Bizim Intel Node'lar)
         replicas: 1
         controller:
           resources:
@@ -35,7 +33,8 @@ spec:
               memory: 1Gi
   destination:
     server: 'https://kubernetes.default.svc'
-    namespace: kube-system
+    # 👇 BURASI KRİTİK: kube-system DEĞİL, karpenter OLMALI
+    namespace: karpenter
   syncPolicy:
     automated:
       prune: true

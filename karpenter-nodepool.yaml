@@ -4,7 +4,7 @@ metadata:
   name: default
 spec:
   amiFamily: AL2
-  # 👇 YENİ TERRAFORM ÇIKTISINI BURAYA KOYDUM:
+  # 👇 Yeni Terraform Çıktın (Role Name)
   role: "Karpenter-microservices-demo-cluster-20260209142159548600000017"
   subnetSelectorTerms:
     - tags:
@@ -27,7 +27,7 @@ spec:
       nodeClassRef:
         name: default
       requirements:
-        # 👇 GRAVITON (ARM64) BÜYÜSÜ:
+        # 👇 ARM64 (Graviton) Zorunluluğu
         - key: "kubernetes.io/arch"
           operator: In
           values: ["arm64"]
