@@ -1,7 +1,7 @@
 module "vpc" {
   source  = "terraform-aws-modules/vpc/aws"
   version = "~> 5.0"
-
+  
   name = "microservices-demo-vpc"
   cidr = "10.0.0.0/16"
 
@@ -22,6 +22,7 @@ module "vpc" {
   }
 
   private_subnet_tags = {
+    "karpenter.sh/discovery" = "microservices-demo-cluster"
     "kubernetes.io/role/internal-elb" = 1
     "karpenter.sh/discovery" = "microservices-demo-cluster"
   }

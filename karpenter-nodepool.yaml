@@ -1,10 +1,38 @@
 apiVersion: karpenter.sh/v1
+kind: NodePool
+metadata:
+  name: default
+spec:
+  template:
+    spec:
+      expireAfter: 720h
+      nodeClassRef:
+        group: karpenter.k8s.aws
+        kind: EC2NodeClass
+        name: default
+      requirements:
+        # 1. ARM Mimarisi (Graviton)
+        - key: "kubernetes.io/arch"
+          operator: In
+          values: ["arm64"]
+          
+        # 2. Kapasite: Spot bulamazsan On-Demand aç (Garanti Yöntem)
+        - key: "karpenter.sh/capacity-type"
+          operator: In
+          values: ["spot", "on-demand"]
+  limits:
+    cpu: 1000
+  disruption:
+    consolidationPolicy: WhenEmptyOrUnderutilized
+    consolidateAfter: 30s
+
+---
+apiVersion: karpenter.k8s.aws/v1
 kind: EC2NodeClass
 metadata:
   name: default
 spec:
   amiFamily: AL2
-  # 👇 Yeni Terraform Çıktın (Role Name)
   role: "Karpenter-microservices-demo-cluster-20260209142159548600000017"
   subnetSelectorTerms:
     - tags:
@@ -12,33 +40,8 @@ spec:
   securityGroupSelectorTerms:
     - tags:
         karpenter.sh/discovery: "microservices-demo-cluster"
+  amiSelectorTerms:
+    - id: "ami-01440e388acb83d30"
   tags:
     Name: karpenter-node-graviton
     Environment: demo
-
----
-apiVersion: karpenter.sh/v1
-kind: NodePool
-metadata:
-  name: default
-spec:
-  template:
-    spec:
-      nodeClassRef:
-        name: default
-      requirements:
-        # 👇 ARM64 (Graviton) Zorunluluğu
-        - key: "kubernetes.io/arch"
-          operator: In
-          values: ["arm64"]
-        - key: "karpenter.sh/capacity-type"
-          operator: In
-          values: ["spot"]
-        - key: "karpenter.k8s.aws/instance-category"
-          operator: In
-          values: ["c6g", "m6g", "r6g"]
-  limits:
-    cpu: 1000
-  disruption:
-    consolidationPolicy: WhenUnderutilized
-    expireAfter: 720h
