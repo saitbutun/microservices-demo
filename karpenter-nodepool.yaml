@@ -1,0 +1,44 @@
+apiVersion: karpenter.sh/v1beta1
+kind: EC2NodeClass
+metadata:
+  name: default
+spec:
+  amiFamily: AL2
+  # 👇 YENİ TERRAFORM ÇIKTISINI BURAYA KOYDUM:
+  role: "Karpenter-microservices-demo-cluster-20260209142159548600000017"
+  subnetSelectorTerms:
+    - tags:
+        karpenter.sh/discovery: "microservices-demo-cluster"
+  securityGroupSelectorTerms:
+    - tags:
+        karpenter.sh/discovery: "microservices-demo-cluster"
+  tags:
+    Name: karpenter-node-graviton
+    Environment: demo
+
+---
+apiVersion: karpenter.sh/v1beta1
+kind: NodePool
+metadata:
+  name: default
+spec:
+  template:
+    spec:
+      nodeClassRef:
+        name: default
+      requirements:
+        # 👇 GRAVITON (ARM64) BÜYÜSÜ:
+        - key: "kubernetes.io/arch"
+          operator: In
+          values: ["arm64"]
+        - key: "karpenter.sh/capacity-type"
+          operator: In
+          values: ["spot"]
+        - key: "karpenter.k8s.aws/instance-category"
+          operator: In
+          values: ["c6g", "m6g", "r6g"]
+  limits:
+    cpu: 1000
+  disruption:
+    consolidationPolicy: WhenUnderutilized
+    expireAfter: 720h
