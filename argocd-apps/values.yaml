@@ -38,26 +38,3 @@ applications:
             serviceMonitorSelectorNilUsesHelmValues: false
         alertmanager:
           enabled: true
-
-  - name: karpenter-stack
-    syncWave: "-1"
-    namespace: argocd  # Bu "Application" kaynağının yaşayacağı yer
-    source:
-      type: git
-      repoURL: https://github.com/saitbutun/microservices-demo.git
-      targetRevision: feature/karpenter-graviton-migration
-      # 👇 DİKKAT: Terraform'daki local_file kaynağında "filename" olarak
-      # nereyi gösterdiysen o KLASÖRÜ yazmalısın.
-      # Önceki konuşmamızda "k8s/karpenter" demiştik:
-      path: .github/terraform
-    destination:
-      server: https://kubernetes.default.svc
-      # 👇 Generated YAML içindeki "Application" (Controller) argocd'ye,
-      # "NodePool" cluster geneline, "Job" ise karpenter namespace'ine gidecek.
-      # Varsayılan olarak argocd seçebilirsin.
-      namespace: argocd
-    syncPolicy:
-      automated:
-        prune: true
-        selfHeal: true
- 

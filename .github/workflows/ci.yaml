@@ -39,11 +39,9 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # 🔥 ARM cross-build (Graviton) için gerekli
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
 
-      # 🔥 Multi-arch builder
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
@@ -57,7 +55,6 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
-      # 1. Aşama: Hızlıca AMD64 build alıp güvenlik taraması yap (Push yok)
       - name: Build image (amd64 for scan)
         uses: docker/build-push-action@v5
         with:
@@ -66,18 +63,17 @@ jobs:
           platforms: linux/amd64
           push: false
           tags: local/${{ matrix.service }}:scan
-          load: true # Trivy'nin görmesi için Docker Daemon'a yükler
+          load: true 
 
       - name: Scan image with Trivy
         uses: aquasecurity/trivy-action@0.20.0
         with:
           image-ref: local/${{ matrix.service }}:scan
           format: 'table'
-          exit-code: 0 # 1 yaparsan kritik açıkta pipeline durur
+          exit-code: 0
           ignore-unfixed: true
           severity: CRITICAL,HIGH
 
-      # 2. Aşama: Multi-arch (ARM64 + AMD64) Build ve ECR Push
       - name: Build and Push multi-arch image
         uses: docker/build-push-action@v5
         with:
