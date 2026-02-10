@@ -1,0 +1,90 @@
+applications:
+  - name: microservices-demo
+    namespace: default
+    source:
+      type: git
+      repoURL: https://github.com/saitbutun/microservices-demo.git
+      targetRevision: main
+      path: microservice-app
+
+  - name: monitoring
+    syncWave: "0"
+    namespace: monitoring
+    serverSideApply: "true"
+    source:
+      type: helm
+      repoURL: https://prometheus-community.github.io/helm-charts
+      chart: kube-prometheus-stack
+      targetRevision: 57.0.2
+      helmValues: |
+        crds:
+          enabled: true
+        prometheusOperator:
+          enabled: true
+          crds:
+            enabled: true
+        grafana:
+          enabled: true
+          adminPassword: admin
+          service:
+            type: ClusterIP
+        prometheus:
+          enabled: true
+          service:
+            type: ClusterIP
+          prometheusSpec:
+            retention: 7d
+            replicas: 1
+            serviceMonitorSelectorNilUsesHelmValues: false
+        alertmanager:
+          enabled: true
+
+  # 1. KARPENTER CONTROLLER (Helm Chart)
+  # SyncWave -1 veriyoruz ki, diğerlerinden önce kurulsun.
+  - name: karpenter
+    syncWave: "-1" 
+    namespace: karpenter
+    syncPolicy:
+      automated:
+        prune: true
+        selfHeal: true
+      syncOptions:
+        - CreateNamespace=true
+    source:
+      type: helm
+      repoURL: 'public.ecr.aws/karpenter'
+      chart: karpenter
+      targetRevision: '1.0.6'
+      helmValues: |
+        settings:
+          clusterName: "${cluster_name}"
+          interruptionQueue: "${interruption_queue}"
+        serviceAccount:
+          create: true
+          name: karpenter
+          annotations:
+            # Terraform çıktındaki ARN buraya:
+            eks.amazonaws.com/role-arn: "${karpenter_irsa_arn}"
+        replicas: 1
+        controller:
+          resources:
+            requests:
+              cpu: 1
+              memory: 1Gi
+            limits:
+              cpu: 1
+              memory: 1Gi
+
+  # 2. KARPENTER CONFIG (NodePools, Classes, Patch Job)
+  # SyncWave 0 (veya 1) veriyoruz ki, Controller kurulduktan sonra çalışsın.
+  - name: karpenter-config
+    syncWave: "0"
+    namespace: karpenter # Configleri de karpenter namespace'ine atabilirsin
+    source:
+      type: git
+      repoURL: https://github.com/saitbutun/microservices-demo.git
+      targetRevision: main
+      path: karpenter-config # Adım 1'de oluşturduğumuz klasör
+
+    
+              

@@ -1,0 +1,23 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: karpenter-crd-patch
+  namespace: karpenter
+  annotations:
+    argocd.argoproj.io/hook: PostSync
+    argocd.argoproj.io/hook-delete-policy: HookSucceeded
+spec:
+  template:
+    spec:
+      serviceAccountName: karpenter
+      restartPolicy: Never
+      containers:
+        - name: patch
+          image: bitnami/kubectl:latest
+          command:
+            - /bin/sh
+            - -c
+            - |
+              kubectl patch crd nodepools.karpenter.sh --type='json' -p='[{"op":"replace","path":"/spec/conversion/webhook/clientConfig/service/namespace","value":"karpenter"}]'
+              kubectl patch crd ec2nodeclasses.karpenter.k8s.aws --type='json' -p='[{"op":"replace","path":"/spec/conversion/webhook/clientConfig/service/namespace","value":"karpenter"}]'
+              kubectl patch crd nodeclaims.karpenter.sh --type='json' -p='[{"op":"replace","path":"/spec/conversion/webhook/clientConfig/service/namespace","value":"karpenter"}]'

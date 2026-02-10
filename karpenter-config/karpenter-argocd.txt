@@ -20,7 +20,7 @@ spec:
           name: karpenter
           annotations:
             # 👇 Yeni Terraform Çıktın (ARN)
-            eks.amazonaws.com/role-arn: "arn:aws:iam::096086545925:role/KarpenterController-20260209142159251000000013" 
+            eks.amazonaws.com/role-arn: "arn:aws:iam::096086545925:role/KarpenterController-20260209204724081400000013" #çıktı değişiyor her yeni cluster oluşturulduğunda checkle
 
         replicas: 1
         controller:
