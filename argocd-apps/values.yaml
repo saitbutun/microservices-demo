@@ -48,7 +48,7 @@ applications:
       # 👇 DİKKAT: Terraform'daki local_file kaynağında "filename" olarak
       # nereyi gösterdiysen o KLASÖRÜ yazmalısın.
       # Önceki konuşmamızda "k8s/karpenter" demiştik:
-      path: .github/terraform/karpenter.yaml
+      path: .github/terraform/karpenter-generated.yaml
     destination:
       server: https://kubernetes.default.svc
       # 👇 Generated YAML içindeki "Application" (Controller) argocd'ye,
