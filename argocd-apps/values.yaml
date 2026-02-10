@@ -4,7 +4,7 @@ applications:
     source:
       type: git
       repoURL: https://github.com/saitbutun/microservices-demo.git
-      targetRevision: main
+      targetRevision: feature/karpenter-graviton-migration
       path: microservice-app
 
   - name: monitoring
@@ -44,7 +44,7 @@ applications:
     source:
       type: git
       repoURL: https://github.com/saitbutun/microservices-demo.git
-      targetRevision: main
+      targetRevision: feature/karpenter-graviton-migration
       # 👇 DİKKAT: Terraform'daki local_file kaynağında "filename" olarak
       # nereyi gösterdiysen o KLASÖRÜ yazmalısın.
       # Önceki konuşmamızda "k8s/karpenter" demiştik:
