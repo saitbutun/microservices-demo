@@ -1,0 +1,62 @@
+applications:
+  - name: microservices-demo
+    namespace: default
+    source:
+      type: git
+      repoURL: https://github.com/saitbutun/microservices-demo.git
+      targetRevision: main
+      path: microservice-app
+
+  - name: monitoring
+    syncWave: "0"
+    namespace: monitoring
+    serverSideApply: "true"
+    source:
+      type: helm
+      repoURL: https://prometheus-community.github.io/helm-charts
+      chart: kube-prometheus-stack
+      targetRevision: 57.0.2
+      helmValues: |
+        crds:
+          enabled: true
+        prometheusOperator:
+          enabled: true
+          crds:
+            enabled: true
+        grafana:
+          enabled: true
+          adminPassword: admin
+          service:
+            type: ClusterIP
+        prometheus:
+          enabled: true
+          service:
+            type: ClusterIP
+          prometheusSpec:
+            retention: 7d
+            replicas: 1
+            serviceMonitorSelectorNilUsesHelmValues: false
+        alertmanager:
+          enabled: true
+
+  - name: karpenter-stack
+    namespace: argocd  # Bu "Application" kaynağının yaşayacağı yer
+    source:
+      type: git
+      repoURL: https://github.com/saitbutun/microservices-demo.git
+      targetRevision: main
+      # 👇 DİKKAT: Terraform'daki local_file kaynağında "filename" olarak
+      # nereyi gösterdiysen o KLASÖRÜ yazmalısın.
+      # Önceki konuşmamızda "k8s/karpenter" demiştik:
+      path: .github/terraform/karpenter.yaml
+    destination:
+      server: https://kubernetes.default.svc
+      # 👇 Generated YAML içindeki "Application" (Controller) argocd'ye,
+      # "NodePool" cluster geneline, "Job" ise karpenter namespace'ine gidecek.
+      # Varsayılan olarak argocd seçebilirsin.
+      namespace: argocd
+    syncPolicy:
+      automated:
+        prune: true
+        selfHeal: true
+ 
