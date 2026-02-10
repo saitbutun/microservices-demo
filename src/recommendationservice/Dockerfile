@@ -12,8 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM --platform=$BUILDPLATFORM python:3.14.2-alpine@sha256:7af51ebeb83610fb69d633d5c61a2efb87efa4caf66b59862d624bb6ef788345 AS base
-
+FROM python:3.14.2-alpine AS base
 FROM base AS builder
 
 ENV PYTHONDONTWRITEBYTECODE=1
