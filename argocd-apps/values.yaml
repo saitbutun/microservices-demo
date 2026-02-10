@@ -40,6 +40,7 @@ applications:
           enabled: true
 
   - name: karpenter-stack
+    syncWave: "-1"
     namespace: argocd  # Bu "Application" kaynağının yaşayacağı yer
     source:
       type: git
@@ -48,7 +49,7 @@ applications:
       # 👇 DİKKAT: Terraform'daki local_file kaynağında "filename" olarak
       # nereyi gösterdiysen o KLASÖRÜ yazmalısın.
       # Önceki konuşmamızda "k8s/karpenter" demiştik:
-      path: .github/terraform/karpenter-generated.yaml
+      path: .github/terraform
     destination:
       server: https://kubernetes.default.svc
       # 👇 Generated YAML içindeki "Application" (Controller) argocd'ye,
